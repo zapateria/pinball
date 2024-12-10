@@ -112,9 +112,9 @@ class Wall:
         l4.elasticity = 1
         space.add(self.body, l1,l3,l4)
 
-
 class Ball:
-    def __init__(self,space):
+    def __init__(self,game,space):
+        self.game = game
         self.mass = 1
         self.radius = 15
         self.body = pymunk.Body() 
@@ -129,8 +129,12 @@ class Ball:
         ch = space.add_collision_handler(1, 2)
         ch.post_solve = self.hit
     
-    def hit(self, space, arbiter, data):
-        print("hit")
+    def hit(self, arbiter, space, data):
+        print(arbiter)
+        print(space)
+        print(data)
+        self.game.score += 1
+        print(self.game.score)
 
     def draw(self,screen):
         pygame.draw.circle(screen, (0,0,255), self.body.position, int(self.radius), 2)
@@ -142,6 +146,8 @@ class Game:
         self.TITLE = title
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
         self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
+        self.score = 0
+
 
     def start_game(self):
         pygame.init()
@@ -155,7 +161,9 @@ class Game:
         self.map = Map(space)
         self.left_flipper = LeftFlipper(space)
         self.right_flipper = RightFlipper(space)
-        self.ball = Ball(space)
+        self.ball = Ball(self, space)
+
+        font = pygame.font.Font(None, 48)
 
         running = True
         while running:
@@ -173,7 +181,7 @@ class Game:
                     self.right_flipper.down()
 
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                    self.ball = Ball(space)
+                    self.ball = Ball(self, space)
          
                     
 
@@ -182,6 +190,8 @@ class Game:
             self.update()
 #            self.render()
             space.debug_draw(self.draw_options)
+            score_text = font.render("Score: "+str(self.score), 1, (255,255,0))
+            self.screen.blit(score_text, (50, 10))
             pygame.display.flip()
             clock.tick(100)
 
