@@ -20,7 +20,6 @@ class LeftFlipper:
         self.body.angular_velocity = FORCE
 
     def update(self):
-        print(self.body.angle)
         if self.body.angle <= -0.436332313:
             self.body.angular_velocity = 0
             self.body.angle = -0.436332313
