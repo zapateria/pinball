@@ -43,7 +43,6 @@ class RightFlipper:
 
 
     def update(self):
-        print(self.body.angle)
         if self.body.angle <= -0.436332313:
             self.body.angular_velocity = 0
             self.body.angle = -0.436332313
@@ -52,16 +51,52 @@ class RightFlipper:
             self.body.angular_velocity = 0
 
 class Map:
+
+    def create_segment(self,coords):
+        seg = pymunk.Segment(self.body, coords[0], coords[1], 4)
+        seg.elasticity = 0.4
+        seg.friction = 1
+        return seg
+
+    def create_target(self,coords):
+        target = pymunk.Segment(self.body, coords[0], coords[1], 8)
+        target.collision_type = 2
+        target.elasticity = 2
+        target.friction = 0.1
+        return target
+    
     def __init__(self,space):
         self.body = pymunk.Body(body_type = pymunk.Body.KINEMATIC)
         self.body.position = (0,0)
+        space.add(self.body)
+    
+        walls = [
+            ((100,600), (300, 700)),
+            ((700,600), (500, 700))
+        ]
 
+        targets = [
+            ((290,280), (310, 300)),
+            ((280,220), (300, 210)),
+            ((100,480), (120, 500)),
+            
+        ]
+    
+        segments = list(map(self.create_segment, walls))
+        for s in segments:
+            space.add(s)
+        target_segments = list(map(self.create_target, targets))
+        for s in target_segments:
+            space.add(s)
+
+        """
         l = pymunk.Segment(self.body, (100,600), (300, 700), 2)
         r = pymunk.Segment(self.body, (700,600), (500, 700), 2)
         l.elasticity = 0.5
         r.elasticity = 0.5
         space.add(self.body, l, r)
-
+        """
+        
 class Wall:
     def __init__(self,space):
         self.body = pymunk.Body(body_type = pymunk.Body.KINEMATIC)
@@ -82,14 +117,20 @@ class Ball:
     def __init__(self,space):
         self.mass = 1
         self.radius = 15
-        self.body = pymunk.Body()  # 1
-        x = random.randint(120, 300)
-        self.body.position = 300, 50  # 2
-        shape = pymunk.Circle(self.body, self.radius)  # 3
-        shape.mass = self.mass  # 4
+        self.body = pymunk.Body() 
+        x = random.randint(200, 600)
+        self.body.position = x, 10 
+        shape = pymunk.Circle(self.body, self.radius) 
+        shape.mass = self.mass 
         shape.friction = 0.2
         shape.elasticity = 1
-        space.add(self.body, shape)  # 5
+        shape.collision_type = 1
+        space.add(self.body, shape) 
+        ch = space.add_collision_handler(1, 2)
+        ch.post_solve = self.hit
+    
+    def hit(self, space, arbiter, data):
+        print("hit")
 
     def draw(self,screen):
         pygame.draw.circle(screen, (0,0,255), self.body.position, int(self.radius), 2)
@@ -136,13 +177,13 @@ class Game:
          
                     
 
-            space.step(1/50.0)        
+            space.step(1/100.0)        
             self.screen.fill((0,0,0))
             self.update()
 #            self.render()
             space.debug_draw(self.draw_options)
             pygame.display.flip()
-            clock.tick(50)
+            clock.tick(100)
 
     def update(self):
         self.left_flipper.update()
